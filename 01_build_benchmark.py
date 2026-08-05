@@ -16,7 +16,7 @@ ncbi = NCBITaxa()
 
 DOMAINS = {2: "Bacteria", 2157: "Archaea", 2759: "Eukaryota", 10239: "Viruses"}
 
-# Returns domain and rank for a given taxid
+# returns domain and rank for a given taxid
 def annotate(taxid):
   try:
     # gets lineage from root of current taxid
@@ -35,19 +35,19 @@ def annotate(taxid):
 
   return domain, rank
 
-# Use previous function to map each level to its domain and rank
+# use previous function to map each level to its domain and rank
 df_levels[["domain", "rank"]] = pd.DataFrame(
     df_levels["level_tax_id"].apply(annotate).tolist(),
     index=df_levels.index
 )
 
-# Given warnings are about NCBI Taxonomy ID that changed,
+# given warnings are about NCBI Taxonomy ID that changed,
 # they are not harmful and automatically handled by ete3
 
-# Only viruses have NaN values, they will be excluded anyway
+# only viruses have NaN values, they will be excluded anyway
 df_levels[df_levels["domain"].isna()]["level_name"]
 
-# We select candidate families/orders having between 50 and 150 species
+# we select candidate families/orders having between 50 and 150 species
 cand = df_levels[
     df_levels["n_species"].between(50, 150)
     & df_levels["rank"].isin(["family", "order"])
@@ -55,7 +55,7 @@ cand = df_levels[
 
 print(cand["domain"].value_counts())
 
-# Viruses are excluded
+# viruses are excluded
 cand = cand[cand["domain"] != "Viruses"]
 
 # Eukaryotic, Bacterial and Archaeal families/orders are considered
@@ -69,7 +69,7 @@ print(bac[["level_tax_id", "level_name", "rank", "n_species", "n_OGs"]].to_strin
 
 print(arc[["level_tax_id", "level_name", "rank", "n_species", "n_OGs"]].to_string())
 
-# Selected clades
+# selected clades
 CLADES = {
     9443:   "Primates",
     7214:   "Drosophilidae",
@@ -80,17 +80,17 @@ CLADES = {
     2235:   "Halobacteriales",
 }
 
-# Maps each organism to its sequence of levels in OrthoDB,
+# maps each organism to its sequence of levels in OrthoDB,
 # it allows query which organisms belong to a given level
 df_level2species = pd.read_csv("data/odb12v2_level2species.tab", sep="\t", header=None)
 df_level2species.columns = ["top_level", "organism_id", "hops", "level_path"]
 
-# Each row correspond to a species. The columns are NCBI Taxonomy ID, OrthoDB ID,
+# each row correspond to a species. The columns are NCBI Taxonomy ID, OrthoDB ID,
 # scientific name and genome assembly.
 df_species = pd.read_csv("data/odb12v2_species.tab",       sep="\t", header=None)
 df_species.columns = ["ncbi_taxid", "organism_id", "name", "assembly", "n_genes", "n_OGs", "mapping_type"]
 
-# Last three columns are empty, we named according to README.txt.
+# last three columns are empty, we named according to README.txt.
 assert df_species[["n_genes", "n_OGs", "mapping_type"]].notna().sum().sum() == 0
 df_species = df_species.drop(columns=["n_genes", "n_OGs", "mapping_type"])
 
@@ -121,7 +121,7 @@ expected = (df_levels.set_index("level_tax_id")
 for name, orgs in pools.items():
     print(f"{name:20s} got {len(orgs):4d}   expected {expected[name]:4d}")
 
-# Assigns each organism to one of the selected clades
+# assigns each organism to one of the selected clades
 df_pool = pd.concat(
   [df_species[df_species["organism_id"].isin(orgs)].assign(clade=name)
   for name, orgs in pools.items()],
@@ -136,7 +136,7 @@ import requests, time
 API = "https://data.orthodb.org/v12-2/search"
 HEADERS = {"User-Agent": "BSB2026-research/0.1 (arcanjomjr@gmail.com)"}
 
-# Retrieves count of orthologous groups for a given clade
+# retrieves count of orthologous groups for a given clade
 def og_count(tax, universal, singlecopy):
   r = requests.get(API,
                    params={"level":tax,
@@ -148,7 +148,7 @@ def og_count(tax, universal, singlecopy):
   r.raise_for_status()
   return int(r.json()["count"])
 
-# Number of orthologous families that have a single copy in at least
+# number of orthologous families that have a single copy in at least
 # 90% of the species of a given clade
 for tax, name in CLADES.items():
   print(f"{name:20s}  90/90: {og_count(tax, 0.9, 0.9):6d}")
@@ -161,7 +161,7 @@ os.makedirs("cache", exist_ok=True)
 DEFAULT_TARGET = 80
 FETCH_TARGET = {"Debaryomycetaceae": 800} #needs more candidates since many are flagged as being of the same species
 
-# Fetches and caches Orthologous Groups IDs from OrthoDB given a set of clades
+# fetches and caches Orthologous Groups IDs from OrthoDB given a set of clades
 def fetch_og_ids(tax, target):
     path = f"cache/ogids_{tax}.json"
     ids = json.load(open(path)) if os.path.exists(path) else []
@@ -211,8 +211,8 @@ for name, ids in og_ids.items():
     have = sum(1 for og in todo if os.path.exists(f"cache/fasta/{og}.fa"))
     print(f"{name:20s} {have}/{target}")
 
-# Parses FASTA files from OrthoDB
-# These FASTA files have JSON-formatted information in their header
+# parses FASTA files from OrthoDB
+# these FASTA files have JSON-formatted information in their header
 def parse_orthodb_fasta(text):
     recs = []
     for block in text.split(">")[1:]:
