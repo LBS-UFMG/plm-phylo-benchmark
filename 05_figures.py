@@ -100,7 +100,7 @@ def clade_heatmap(ref):
     im = ax.imshow(piv.values, cmap="YlOrRd", vmin=0.4, vmax=1.0, aspect="auto")
     ax.set_xticks(range(len(ORDER))); ax.set_xticklabels([LABEL[t] for t in ORDER], rotation=30, ha="right")
     ax.set_yticks(range(len(clades)))
-    ax.set_yticklabels([f"{c}\n(id {clade_div[c]:.2f})" for c in clades], fontsize=8)
+    ax.set_yticklabels([f"$\\it{{{c}}}$\n(id {clade_div[c]:.2f})" for c in clades], fontsize=8)
     for i in range(len(clades)):
         for j in range(len(ORDER)):
             ax.text(j, i, f"{piv.values[i,j]:.2f}", ha="center", va="center", fontsize=8)
@@ -146,7 +146,7 @@ for m in esm2 + esmc:
 ax.set_ylim(0.60, 0.90)                      # headroom top + room for baseline
 ax.set_xscale("log")
 ax.set_xlabel("Model size (M parameters, log scale)")
-ax.set_ylabel("Normalized RF (species ref, lower = better)")
+ax.set_ylabel("Normalized RF (species ref, lower is better)")
 ax.set_title("Neither scale nor metagenomic training helps")
 ax.legend(frameon=False, loc="center left")   # empty mid-band
 fig.savefig("figures/fig4_scaling.png"); fig.savefig("figures/fig4_scaling.pdf")
@@ -166,7 +166,7 @@ for t in ORDER:
             markersize=5, label=LABEL[t])
 
 ax.set_xlabel("Mean pairwise identity  (← more divergent      less divergent →)")
-ax.set_ylabel("Normalized RF (lower = better)")
+ax.set_ylabel("Normalized RF (lower is better)")
 ax.set_title("Embeddings improve with divergence but never beat Hamming\n(reference: species tree)")
 ax.legend(frameon=False, fontsize=8, ncol=2, loc="upper left")
 fig.savefig("figures/fig5_divergence.png"); fig.savefig("figures/fig5_divergence.pdf")
@@ -208,4 +208,3 @@ print("\n— Claim 2: ESMC vs size-matched ESM2 (two-sided) —")
 for a, b in [("esmc_300m","esm2_150m"), ("esmc_600m","esm2_650m")]:
     stat, p = wilcoxon(sp[a], sp[b])
     print(f"{a} vs {b}:  median Δ={(sp[a]-sp[b]).median():+.3f}  p={p:.3f}")
-
